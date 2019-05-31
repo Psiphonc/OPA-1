@@ -1,3 +1,118 @@
+class op:
+    L = []
+    R = []
+    VN = []
+    VT = []
+    firstVT = {}
+    lastVT = {}
+
+    def __init__(self, production_rule):
+
+        for l in open(production_rule):
+            p = l.strip('\n').split('->')
+            self.L.append(p[0])
+            self.R.append(p[1])
+
+        for i in range(len(self.L)):
+            if self.L[i] not in self.VN:
+                self.VN.append(self.L[i])
+
+        print('VN set:', self.VN)
+
+        for r in self.R:
+            for p in range(len(r)):
+                if (r[p] not in self.VN) and (r[p] not in self.VT):
+                    self.VT.append(r[p])
+
+        print('VT set:', self.VT)
+
+        self.firstVT = self.calc_firstvt()
+        self.lastVT = self.calc_lastvt()
+
+    def calc_firstvt(self):
+        # 对每个产生式的左边
+        firstVT = {}
+        for i in range(len(self.L)):
+            # 若产生式右边的首字符为终结符(P->a...)
+            if self.R[i][0] in self.VT:
+                # 将该终结符加入L[i]的firstVT集
+                if self.L[i] not in firstVT:
+                    firstVT[self.L[i]] = [self.R[i][0]]
+                else:
+                    firstVT[self.L[i]].append(self.R[i][0])
+            # 若产生式右边的首字符为非终结符(P->Qa...)
+            elif self.R[i][0] in self.VN:
+                # 若产生式右边第二个符号为终结符
+                if len(self.R[i]) > 1 and (self.R[i][1] in self.VT):
+                    # 将该终结符加入L[i]的firstVT集
+                    if self.L[i] not in firstVT:
+                        firstVT[L[i]] = [self.R[i][1]]
+                    else:
+                        firstVT[L[i]].append(self.R[i][1])
+        # P->Q..
+        stack = []
+        # 对于每个非终结符_k的FirstVT
+        for _k in firstVT:
+            # 取出FirstVT(_k)中的终结符入栈
+            for _v in firstVT.get(_k):
+                stack.append([_k, _v])
+
+        while len(stack) > 0:
+            tmp = stack.pop()
+            K = tmp[0]
+            v = tmp[1]
+            # 逐条扫描产生式
+            for i in range(len(self.R)):
+                l, r = self.L[i], self.R[i]
+                # 若产生式右部第一个符号是非终结符K
+                if (r[0] == K and K != l) and (v not in firstVT.get(l)):
+                    firstVT[l].append(v)  # 把FirstVT(K)中的元素加入FirstVT(L)
+                    stack.append([l, v])  # 发生变化，需要重新对FirstVT(L)扫描
+
+        print('firstVT set:', firstVT)
+        return firstVT
+
+    def calc_lastvt(self):
+        lastVT = {}
+
+        for i in range(len(L)):
+            if self.R[i][-1] in self.VT:
+                if self.L[i] not in lastVT:
+                    lastVT[self.L[i]] = [self.R[i][-1]]
+                else:
+                    lastVT[self.L[i]].append(self.R[i][-1])
+            elif self.R[i][-1] in self.VN:
+                if len(self.R[i]) > 1 and (self.R[i][-2] in self.VT):
+                    # print L[i],R[i]
+                    if self.L[i] not in lastVT:
+                        lastVT[L[i]] = [self.R[i][-2]]
+                    else:
+                        lastVT[L[i]].append(self.R[i][-2])
+
+
+        stack = []
+
+        for _k in lastVT:
+            for _v in lastVT.get(_k):
+                stack.append([_k, _v])
+
+        # print stack
+
+        while len(stack) > 0:
+            tmp = stack.pop()
+            K = tmp[0]
+            v = tmp[1]
+            for i in range(len(L)):
+                l, r = self.L[i], self.R[i]
+                if (r[0] == K and K != l) and (v not in lastVT.get(l)):
+                    lastVT[l].append(v)
+                    stack.append([l, v])
+
+        print('lastVT set:', lastVT)
+
+        return lastVT
+
+
 L = []
 R = []
 # warning : VN and VT can only be one char
